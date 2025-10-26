@@ -17,6 +17,10 @@ services:
     working_dir: /app
     volumes:
       - ./blue-server.js:/app/server.js
+    environment:
+      - APP_POOL=blue
+      - RELEASE_ID=blue-v1.0.0
+      - PORT=8080
     command: ["node", "server.js"]
     restart: unless-stopped
 
@@ -27,6 +31,10 @@ services:
     working_dir: /app
     volumes:
       - ./green-server.js:/app/server.js
+    environment:
+      - APP_POOL=green
+      - RELEASE_ID=green-v1.0.0
+      - PORT=8080
     command: ["node", "server.js"]
     restart: unless-stopped
 
