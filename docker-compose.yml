@@ -1,0 +1,35 @@
+services:
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - blue
+      - green
+    restart: unless-stopped
+
+  blue:
+    image: test-blue-app
+    ports:
+      - "8081:8080"
+    environment:
+      - PORT=8080
+      - APP_POOL=blue
+      - RELEASE_ID=blue-test-v1.0.0
+    restart: unless-stopped
+
+  green:
+    image: test-green-app
+    ports:
+      - "8082:8080"
+    environment:
+      - PORT=8080
+      - APP_POOL=green
+      - RELEASE_ID=green-test-v1.0.0
+    restart: unless-stopped
+
+networks:
+  default:
+    name: zero-downtime-network
