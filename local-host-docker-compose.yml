@@ -11,23 +11,23 @@ services:
     restart: unless-stopped
 
   blue:
-    image: node:18-alpine
+    image: test-blue-app
     ports:
       - "8081:8080"
-    working_dir: /app
-    volumes:
-      - ./blue-server.js:/app/server.js
-    command: ["node", "server.js"]
+    environment:
+      - PORT=8080
+      - APP_POOL=blue
+      - RELEASE_ID=blue-test-v1.0.0
     restart: unless-stopped
 
   green:
-    image: node:18-alpine
+    image: test-green-app
     ports:
       - "8082:8080"
-    working_dir: /app
-    volumes:
-      - ./green-server.js:/app/server.js
-    command: ["node", "server.js"]
+    environment:
+      - PORT=8080
+      - APP_POOL=green
+      - RELEASE_ID=green-test-v1.0.0
     restart: unless-stopped
 
 networks:
