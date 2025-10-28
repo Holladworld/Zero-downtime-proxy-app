@@ -1,0 +1,58 @@
+upstream active_pool {
+    server app_${ACTIVE_POOL}:${APP_PORT} max_fails=1 fail_timeout=5s;
+    server app_${BACKUP_POOL}:${APP_PORT} backup;
+}
+
+server {
+    listen 80;
+    server_name localhost;
+
+    # Fast timeouts for quick failure detection
+    proxy_connect_timeout 2s;
+    proxy_send_timeout 2s;
+    proxy_read_timeout 2s;
+
+    # Enable retries on errors, timeouts, and 5xx responses
+    proxy_next_upstream error timeout http_500 http_502 http_503 http_504;
+    proxy_next_upstream_tries 1;
+    proxy_next_upstream_timeout 3s;
+
+    location / {
+        proxy_pass http://active_pool;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_pass_request_headers on;
+        proxy_buffering off;
+    }
+
+    location /version {
+        proxy_pass http://active_pool/version;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        
+        # Quick timeouts for fast failover
+        proxy_connect_timeout 2s;
+        proxy_send_timeout 2s;
+        proxy_read_timeout 2s;
+        
+        # Enable retries for this endpoint
+        proxy_next_upstream error timeout http_500 http_502 http_503 http_504;
+        proxy_next_upstream_tries 1;
+        proxy_next_upstream_timeout 3s;
+        
+        proxy_pass_request_headers on;
+        proxy_buffering off;
+    }
+
+    location /healthz {
+        proxy_pass http://active_pool/healthz;
+        proxy_set_header Host $host;
+        proxy_connect_timeout 1s;
+        proxy_send_timeout 1s;
+        proxy_read_timeout 1s;
+    }
+}
